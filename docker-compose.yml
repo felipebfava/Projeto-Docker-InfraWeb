@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/src/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  backend:
+  backend-service:
 
     build: ./backend
 
@@ -36,7 +36,7 @@ services:
       - "3005:80"
 
     depends_on:
-      - backend
+      - backend-service
 
 volumes:
   postgres_data:

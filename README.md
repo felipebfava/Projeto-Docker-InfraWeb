@@ -1,7 +1,7 @@
 ### Participantes
 Felipe Biava Favarin
 
-### Sobre
+# Sobre o Projeto
 Projeto avaliativo destinado a disciplina de Infraestrutura e Serviços Web, ministrada pela Professora Angelita Rettore de Araujo, pelo Instituto Federal Catarinense - Videira.
 
 ## Descrição do Projeto
@@ -10,38 +10,64 @@ A AngelCorp, empresa brasileira de atuação global em soluções computacionais
 
 ### Objetivos
 #### Objetivo Geral
-Desenvolver uma aplicação web containerizada com três camadas (frontend, backend/API e banco de dados), orquestrada pelo Kubernetes, aplicando conceitos de conteinerização, comunicação entre contêineres, persistência de dados e exposição de serviços.
+Conforme requerido, foi desenvolvido uma aplicação web containerizada com três camadas (frontend, backend/API e banco de dados), orquestrada pelo Kubernetes, aplicando conceitos de conteinerização, comunicação entre contêineres, persistência de dados e exposição de serviços.
 
 #### Objetivos Específicos
-Ao final deste projeto, o aluno deverá ser capaz de:
+Neste projeto, foi seguido os seguintes objetivos específicos:
 
-- Construir e publicar imagens Docker/Podman customizadas para frontend e backend.
+- Construção e publicação das imagens customizadas no Docker para o frontend e backend.
 
-- Utilizar imagem oficial para o banco de dados.
+- Utilização de uma imagem oficial para o banco de dados PostgreSQL.
 
-- Configurar comunicação entre contêineres via rede interna (ClusterIP).
+- Configurado a comunicação entre contêineres via rede interna (ClusterIP).
 
-- Expor o frontend ao mundo externo via NodePort ou equivalente.
+- Somente o frontend está exposto ao mundo externo via NodePort.
 
-- Implementar persistência de dados com Persistent Volume (PV) e Persistent Volume Claim (PVC).
+- Implementado a persistência de dados com Persistent Volume (PV) e Persistent Volume Claim (PVC).
 
-- Gerenciar configurações sensíveis com ConfigMaps e Secrets do Kubernetes.
+- Ajustado os Manifests do Kubernetes para usarmos configurações sensíveis com ConfigMaps e Secrets.
 
-- Orquestrar todos os serviços com Deployments do Kubernetes.
+- Os serviços estão sendo orquestrados com Deployments do Kubernetes.
 
-- Documentar toda a infraestrutura com docker-compose.yml e manifests YAML do Kubernetes.
+- Toda a infraestrutura está documentada com docker-compose.yml e manifests YAML do Kubernetes.
 
 ### Arquitetura do Projeto
-A solução proposta deve seguir uma arquitetura de três camadas, onde cada camada é representada por um ou mais contêineres, com responsabilidades bem definidas e comunicação controlada. A seguir, detalhamos cada um dos contêineres e suas características.
+A solução proposta seguiu uma arquitetura de três camadas, onde cada camada é representada por um Dockerfile, com responsabilidades bem definidas e comunicação controlada. A seguir, detalhamos a estrutura final do projeto e cada um dos contêineres e suas características.
 
+Temos a seguinte **Estrutura Final do Projeto**:
+
+<div align="center">
+<pre>
+Internet
+    │
+    │
+    ▼
+frontend-service (NodePort)
+    │
+    ▼
+Frontend (Nginx)
+    │
+proxy_pass
+    │
+    ▼
+backend-service (ClusterIP)
+    │
+    ▼
+Backend Node.js
+    │
+    ▼
+db-service (ClusterIP)
+    │
+    ▼
+PostgreSQL
+PVC + PV
+</pre>
+</div>
 
 #### Contêiner 1 — Frontend (Web)
-Descrever a tecnologia utilizada
+Para o frontend, foi escolhido tecnologias simples como HTML, CSS e JS. Onde usuário tem por objetivo digitar uma tarefa do seu dia a dia (texto puro) para a inclusão, listagem e exclusão das tarefas.
 
-HTML + CSS + JS simples mostrando uma caixa de texto onde o usuário terá que digitar uma tarefa do seu dia a dia (texto puro)
-O usuário, ao clicar em enter confirmando o texto escrito, fará com que o texto apareça embaixo.
-
-O objetivo disso é simplesmente mostrar a estrutura complexa de DevOps exigida para esse trabalho. Tendo um frontend simples
+O objetivo disso é simplesmente mostrar a estrutura de DevOps mais focada em Containers e Kubernetes exigida para esse trabalho. Tendo um frontend simples.
 
 Rotas da API usando node JS:
 Rota principal que terá a caixa de texto e que será acessada pelo usuário:
@@ -63,10 +89,21 @@ Descrever a tecnologia utilizada
 
 Banco de dados será o Postgrees, já haverá apenas dois dados / inputs de tarefas lá, somente para quando acessar a rota /tasks aparecer as tarefas do banco também
 
-Usar imagem oficial do postgres para docker
-POSTGRES_USER = admin
-POSTGRES_PASSWORD = admin
-Porta que o serviço postgres usa: 5432
+Usar imagem oficial do PostgreSQL para docker, com os seguintes dados no arquivo .env:
+
+- nome do local de hospedagem
+- nome do banco
+- nome do usuário do banco
+- senha do banco
+- Porta padrão que o serviço PostgreSQL usa
+
+Sugestões:
+
+- DB_HOST=localhost
+- POSTGRES_DB=tasks
+- POSTGRES_USER = admin
+- POSTGRES_PASSWORD = admin
+- DB_PORT=5432
 
 
 ### Organização do Projeto
@@ -82,48 +119,10 @@ Há um comportamento do PostgreSQL que vale conhecer: o conteúdo de /docker-ent
 
 Se você alterar o init.sql depois que o PVC já estiver preenchido, o script não será executado novamente. Para testá-lo outra vez durante o desenvolvimento, é preciso remover o PVC (ou o volume correspondente) e criar o banco novamente.
 
-Antes de Ligar o K8S no Frontend a estrutura era:
 
-Internet
-    │
-    │
-    ▼
-Frontend (NodePort)
-    │
-    ▼
-Backend (ClusterIP)
-    │
-    ▼
-PostgreSQL (ClusterIP + PVC)
 
-Após ajustar o Frontend temos:
-
-                Internet
-                    │
-                    │
-                    ▼
-        frontend-service (NodePort)
-                    │
-                    ▼
-          Frontend (Nginx)
-                    │
-            proxy_pass
-                    │
-                    ▼
-      backend-service (ClusterIP)
-                    │
-                    ▼
-         Backend Node.js
-                    │
-                    ▼
-        db-service (ClusterIP)
-                    │
-                    ▼
-             PostgreSQL
-              PVC + PV
-
-### Etapas
-Crie o arquivo .env apropriado seguindo o exemplo de .env.example
+### Etapas para Execução Local
+Crie o arquivo **.env** apropriado seguindo o exemplo de **.env.example**:
 
 Então execute o docker compose:
 ```js
@@ -196,22 +195,40 @@ kubectl get pvc
 kubectl get pv
 ```
 
+Caso queira verificar tudo de uma vez:
+```js
+kubectl get all
+```
+
 Acesse a aplicação:
 ```js
 minikube service frontend-service
 ```
 
 ### Rotas
-Para acessar e conferir o projeto, utilize as rotas:
+Aguarde alguns segundos para todos os containers e pods estiverem em **Running**. Para acessar e conferir o projeto, utilize as rotas:
+
+Rota padrão:
+
+http://127.0.0.1:\<porta>
 
 Para fazer o healthcheck:
 
-http://127.0.0.1:36775/api/health
+http://127.0.0.1:\<porta>/api/health
 
 Mostra todas as tarefas:
 
-http://127.0.0.1:36775/api/tasks
+http://127.0.0.1:\<porta>/api/tasks
 
 Mostra a tarefa segundo seu id:
 
-http://127.0.0.1:36775/api/tasks/:id
+http://127.0.0.1:\<porta>/api/tasks/:id
+
+Lembrando que a \<porta> será gerada pelo minikube toda vez que subir o projeto
+
+
+## Rode isso
+Para funcionar localmente sem minikube (teste):
+
+docker compose up -d --build
+
