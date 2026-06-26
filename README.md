@@ -76,3 +76,142 @@ Execute o comando tree no terminal wsl ubuntu e verá a árvore do projeto
 
 ### Formato da Entrega
 A entrega será através de link do repositório público do Aluno no Github
+
+### Sobre o código
+Há um comportamento do PostgreSQL que vale conhecer: o conteúdo de /docker-entrypoint-initdb.d é executado apenas na primeira inicialização, quando o diretório de dados está vazio.
+
+Se você alterar o init.sql depois que o PVC já estiver preenchido, o script não será executado novamente. Para testá-lo outra vez durante o desenvolvimento, é preciso remover o PVC (ou o volume correspondente) e criar o banco novamente.
+
+Antes de Ligar o K8S no Frontend a estrutura era:
+
+Internet
+    │
+    │
+    ▼
+Frontend (NodePort)
+    │
+    ▼
+Backend (ClusterIP)
+    │
+    ▼
+PostgreSQL (ClusterIP + PVC)
+
+Após ajustar o Frontend temos:
+
+                Internet
+                    │
+                    │
+                    ▼
+        frontend-service (NodePort)
+                    │
+                    ▼
+          Frontend (Nginx)
+                    │
+            proxy_pass
+                    │
+                    ▼
+      backend-service (ClusterIP)
+                    │
+                    ▼
+         Backend Node.js
+                    │
+                    ▼
+        db-service (ClusterIP)
+                    │
+                    ▼
+             PostgreSQL
+              PVC + PV
+
+### Etapas
+Crie o arquivo .env apropriado seguindo o exemplo de .env.example
+
+Então execute o docker compose:
+```js
+docker compose build
+
+docker compose up -d
+```
+
+O frontend está na rota: http://localhost:3005
+
+O backend está na rota: http://localhost:3000/tasks
+
+### Utilizando o Minikube
+O projeto foi pensado em usar o Minikube para executar o Kubernetes localmente. Caso queira usar, faça:
+
+Tendo o Kubectl e Minikube instalados e configurados:
+```js
+minikube start
+
+kubectl get nodes
+```
+
+Construa as imagens dentro do Minikube:
+```js
+minikube image build -t projetok8s-backend:latest ./backend
+
+minikube image build -t projetok8s-frontend:latest ./frontend
+```
+
+Agora, aplique os manifests do Kubernetes (um por vez):
+```js
+kubectl apply -f k8s/configmap.yaml
+
+kubectl apply -f k8s/secrets.yaml
+
+kubectl apply -f k8s/postgres-init-configmap.yaml
+
+kubectl apply -f k8s/db-pv.yaml
+
+kubectl apply -f k8s/db-pvc.yaml
+
+kubectl apply -f k8s/db-service.yaml
+
+kubectl apply -f k8s/db-deployment.yaml
+
+kubectl apply -f k8s/backend-service.yaml
+
+kubectl apply -f k8s/backend-deployment.yaml
+
+kubectl apply -f k8s/frontend-service.yaml
+
+kubectl apply -f k8s/frontend-deployment.yaml
+```
+
+Caso queira rodar tudo junto (não recomendado):
+```js
+kubectl apply -f k8s/
+```
+
+Confira se tudo está rodando como deveria:
+```js
+kubectl get pods
+
+kubectl get deployments
+
+kubectl get svc
+
+kubectl get pvc
+
+kubectl get pv
+```
+
+Acesse a aplicação:
+```js
+minikube service frontend-service
+```
+
+### Rotas
+Para acessar e conferir o projeto, utilize as rotas:
+
+Para fazer o healthcheck:
+
+http://127.0.0.1:36775/api/health
+
+Mostra todas as tarefas:
+
+http://127.0.0.1:36775/api/tasks
+
+Mostra a tarefa segundo seu id:
+
+http://127.0.0.1:36775/api/tasks/:id

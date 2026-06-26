@@ -1,0 +1,44 @@
+
+# ConfigMap responsável por armazenar o script SQL inicial
+
+# Porque o uso desse arquivo?
+# O PostgreSQL executará automaticamente todo arquivo
+# existente em /docker-entrypoint-initdb.d
+#
+# Como o Kubernetes não monta arquivos da máquina
+# diretamente como o Docker Compose, armazenamos
+# o SQL dentro deste ConfigMap
+
+# É gambiarra?
+# Não, a própria documentação do Kubernetes mostra esse tipo de solução
+# Porém, para bancos maiores e ambientes de produção pode-se configurar
+# um Job do Kubernetes que executa o arquivo init.sql
+
+
+apiVersion: v1
+
+kind: ConfigMap
+
+metadata:
+
+  # Nome utilizado pelo Deployment
+  name: postgres-init
+
+data:
+
+  # Nome do arquivo que será criado
+  init.sql: |
+
+    CREATE TABLE IF NOT EXISTS tasks (
+
+      id SERIAL PRIMARY KEY,
+
+      task TEXT NOT NULL
+
+    );
+
+    INSERT INTO tasks(task)
+    VALUES
+    ('Atualizar arquivo README'),
+    ('Estudar Kubernetes');
+

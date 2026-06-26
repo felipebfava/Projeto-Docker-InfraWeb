@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+# Responsável por criar o Pod contendo o banco de dado
+# Utiliza e monta em ordem:
+# - Usa imagem oficial postgres:15-alpine
+# - Lerá os Secrets
+# - ConfigMap
+# - Cria o banco e a tabela, monta a tabela inserindo os itens
+# - Deixa os dados persistentes com PersistentVolumeClaim
+
+metadata:
+  name: postgres
+
+spec:
+
+  replicas: 1
+
+  selector:
+
+    matchLabels:
+      app: postgres
+    
+  template:
+    metadata:
+      labels:
+        app: postgres
+    
+    spec:
+      containers:
+      - name: postgres
+
+        # imagem oficial conforme exigido pela atividade
+        image: postgres:15-alpine
+
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - containerPort: 5432
+
+        # Variáveis do ConfigMap
+
+        envFrom:
+        - configMapRef:
+            name: app-config
+        
+        # Variáveis do Secret
+
+        - secretRef:
+            name: db-secret
+        
+        # Volume Persistente do Banco
+
+        volumeMounts:
+        - name: postgres-storage
+
+          mountPath: /var/lib/postgresql/data
+
+        # Script SQL inicial
+
+        - name: postgres-init
+          mountPath: /docker-entrypoint-initdb.d
+        
+      # Definição dos volumes (Corrigido: agora alinhado ao spec do Pod)
+
+      volumes:
+      - name: postgres-storage
+        
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+        
+      - name: postgres-init
+        configMap:
+          name: postgres-init

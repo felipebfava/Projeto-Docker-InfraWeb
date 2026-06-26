@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+# Aqui fica responsável por criar a API do Node.js
+#
+# O Deployment irá:
+# - criar os Pods com limites de cpu e memória
+# - definir a imagem
+# - conectar ConfigMap
+# - conectar Secret
+# - definir os probes
+# - reiniciar automaticamente caso a API falhe
+
+
+metadata:
+
+  # Nome do Deployment
+
+  name: backend
+
+spec:
+
+  # Começa com dois pods
+
+  replicas: 2
+
+  selector:
+
+    matchLabels:
+
+      app: backend
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: backend
+
+    spec:
+
+      containers:
+
+      - name: backend
+
+        # Nome da minha imagem docker do backend
+
+        image: projetok8s-backend:latest
+
+        # Como estamos utilizando imagem local
+        # no Minikube precisa configurar a política de fazer o
+        # download da imagem docker
+        imagePullPolicy: Never
+
+        ports:
+
+        - containerPort: 3000
+
+        # Variáveis do ConfigMap
+
+        # O uso do envFrom (variáveis de (algum lugar))
+        # se deve pois nesse caso o db.js (aplicação) precisa das
+        # variáveis que estão nos arquivos ConfigMap e Secrets
+        # o Kubernetes faz isso (a ligação) de uma forma automatizada
+        envFrom:
+
+        - configMapRef:
+
+            name: app-config
+
+        # Variáveis do Secrets
+
+        - secretRef:
+
+            name: db-secret
+
+
+        # Informa quando a API está pronta "para ler"
+        # receber requisições
+        readinessProbe:
+
+          httpGet:
+
+            path: /health
+
+            port: 3000
+
+          initialDelaySeconds: 5
+
+          periodSeconds: 10
+
+          timeoutSeconds: 2
+
+          # aceita até 3 falhas consecutivas
+          # de verificações / healthchecks
+          failureThreshold: 3
+
+
+        # Caso a API pare de responder
+        # o Kubernetes reinicia o Pod
+        livenessProbe:
+
+          httpGet:
+
+            path: /health
+
+            port: 3000
+
+          initialDelaySeconds: 15
+
+          periodSeconds: 20
+
+          timeoutSeconds: 2
+          
+          # mesma coisa - aceita até 3 falhas
+          failureThreshold: 3
+
+
+        # Configura alguns recursos mínimos de usos
+        # o mesmo usado no curso da RedHat
+        resources:
+
+          requests:
+
+            memory: "64Mi"
+
+            cpu: "100m"
+
+          limits:
+            # significa Mebibyte (MiB) que equivale a
+            # aproximadamente 268 Megabytes (MB)
+            memory: "256Mi"
+
+            # significa 500 milicpus
+            # ou meio núcleo de processador (0.5 vCPU)
+            cpu: "500m"

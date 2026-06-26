@@ -1,0 +1,106 @@
+# O deployment do frontend fica responsável por
+# executar o servidor Nginx que contém
+# a interface Web (html, css, js)
+#
+# Aqui o Deployment vai utilizar
+# a minha imagem do Dockerfile
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  # Nome do Deployment
+
+  name: frontend
+
+spec:
+
+  # Assim como o Backend começa com dois pods
+  replicas: 2
+
+  selector:
+
+    matchLabels:
+
+      app: frontend
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: frontend
+
+    spec:
+
+      containers:
+
+      - name: frontend
+
+        # Nome da minha imagem docker do frontend
+        image: projetok8s-frontend:latest
+
+        # Como a imagem foi criada localmente
+        # não precisa fazer o donwload fora
+        imagePullPolicy: Never
+
+        # Porta utilizada pelo Nginx
+        ports:
+
+        - containerPort: 80
+
+
+        # O Pod só receberá tráfego quando
+        # responder corretamente.
+        readinessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: 80
+
+          initialDelaySeconds: 5
+
+          periodSeconds: 10
+
+          timeoutSeconds: 2
+
+          # aceita até 3 falhas
+          failureThreshold: 3
+
+        # Reinicia automaticamente caso
+        # o Nginx pare de responder
+        livenessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: 80
+
+          initialDelaySeconds: 15
+
+          periodSeconds: 20
+
+          timeoutSeconds: 2
+
+          failureThreshold: 3
+
+        # configura os limites dos recursos
+        resources:
+
+          requests:
+
+            cpu: "50m"
+
+            memory: "32Mi"
+
+          limits:
+
+            cpu: "200m"
+
+            memory: "128Mi"

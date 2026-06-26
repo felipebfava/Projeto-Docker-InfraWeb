@@ -1,24 +1,32 @@
+// const API_URL = "/api";
+// const API_URL = "http://localhost:3000";
 const API_URL = "/api";
+
 
 async function loadTasks() {
 
     const response =
-    await fetch(`${API_URL}/tasks`);
+        await fetch(`${API_URL}/tasks`);
 
     const tasks =
-    await response.json();
+        await response.json();
 
     const ul =
-    document.getElementById("tasks");
+        document.getElementById("tasks");
 
     ul.innerHTML = "";
 
     tasks.forEach(task => {
 
         const li =
-        document.createElement("li");
+            document.createElement("li");
 
-        li.innerText = task.task;
+        li.innerHTML = `
+            ${task.task}
+            <button onclick="deleteTask(${task.id})">
+                Excluir
+            </button>
+        `;
 
         ul.appendChild(li);
     });
@@ -27,7 +35,9 @@ async function loadTasks() {
 async function addTask() {
 
     const task =
-    document.getElementById("taskInput").value;
+        document.getElementById("taskInput").value;
+
+    if (!task.trim()) return;
 
     await fetch(`${API_URL}/tasks`, {
 
@@ -42,7 +52,27 @@ async function addTask() {
         })
     });
 
+    document.getElementById("taskInput").value = "";
+
     loadTasks();
 }
+
+async function deleteTask(id) {
+
+    await fetch(`${API_URL}/tasks/${id}`, {
+        method: "DELETE"
+    });
+
+    loadTasks();
+}
+
+document
+    .getElementById("taskInput")
+    .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+            addTask();
+        }
+    });
 
 loadTasks();

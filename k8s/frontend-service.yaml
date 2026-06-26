@@ -1,0 +1,44 @@
+# Por questões de boas práticas seguidas neste projeto
+# Este é o único serviço exposto para fora do cluster
+# Pois o usuário acessará este Service através do NodePort
+#
+# Fluxo de funcionamento (básico):
+# Navegador
+#      │
+#      ▼
+# NodePort
+#      │
+#      ▼
+# Frontend (Nginx)
+
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  name: frontend-service
+
+spec:
+
+  # Exposição externa
+  type: NodePort
+
+  selector:
+
+    # Procura Pods do frontend
+    app: frontend
+
+  ports:
+
+    # Porta do Service
+
+    - port: 80
+
+      # Porta do container Nginx
+
+      targetPort: 80
+
+      protocol: TCP
+
+      # passa uma porta fixa para facilitar os testes
+      nodePort: 30080

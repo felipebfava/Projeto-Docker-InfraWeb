@@ -1,0 +1,20 @@
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+# Faz uma solicitação ao kubernetes de um
+# volume com armazenamento de 1GB
+
+# O próprio Kubernetes faz a ligação com o PersistentVolume
+
+metadata:
+  name: postgres-pvc
+
+spec:
+
+  accessModes:
+    - ReadWriteOnce
+  
+  resources:
+    requests:
+      storage: 1Gi

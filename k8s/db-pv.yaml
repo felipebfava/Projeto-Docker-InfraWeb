@@ -1,0 +1,22 @@
+apiVersion: v1
+
+kind: PersistentVolume
+
+# Simula um armazenamento em disco físico para o banco de dados
+# Usaremos Minikube, então precisa configurar o hostPath
+
+metadata:
+  name: postgres-pv
+
+# Configuração igual como ensinado pelo curso da RedHat
+spec:
+  capacity:
+    storage: 1Gi
+  
+  accessModes:
+    - ReadWriteOnce
+
+  persistentVolumeReclaimPolicy: Retain
+
+  hostPath:
+    path: /data/postgres
